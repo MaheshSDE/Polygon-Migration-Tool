@@ -134,6 +134,14 @@ AZURE_USERNAME = os.getenv("AZURE_USERNAME")
 AZURE_PASSWORD = os.getenv("AZURE_PASSWORD")
 AZURE_CONTAINER_NAME = os.getenv("AZURE_CONTAINER_NAME")
 
+# Which storage provider the "Migrate Test Cases to Cloud Storage" action uses: azure | gdrive
+STORAGE_PROVIDER = os.getenv("STORAGE_PROVIDER", "azure").strip().lower()
+
+# Google Drive (STORAGE_PROVIDER=gdrive)
+GOOGLE_DRIVE_CREDENTIALS_FILE = os.getenv("GOOGLE_DRIVE_CREDENTIALS_FILE")
+GOOGLE_DRIVE_TOKEN_FILE = os.getenv("GOOGLE_DRIVE_TOKEN_FILE")  # optional; defaults to token.json beside the credentials file
+GOOGLE_DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_FOLDER_ID")  # optional; defaults to the root of My Drive
+
 REDIS_HOST = os.getenv("REDIS_HOST")
 REDIS_PORT = os.getenv("REDIS_PORT")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
