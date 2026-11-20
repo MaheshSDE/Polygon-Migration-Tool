@@ -36,20 +36,20 @@ Add a JavaScript confirmation dialog before form submission for destructive acti
 
 ---
 
-### [P2] Your Issue Title Here
+### [P2] update the cloud storage
 
-**Severity**: Critical / High / Medium / Low
+**Severity**: Medium
 
-**Location**: `filename.py:line_number`
+**Location**: `problems/storage/gdrive_backend.py`
 
 **Description**:
-[What is the issue?]
+Facing issue with creating account with cloud services 
 
 **Impact**:
-[What goes wrong? Who is affected?]
+it will be impact on ne developers to understand
 
 **Suggested Fix**:
-[How would you fix it?]
+update the env file with respected storage cloud
 
 ---
 
@@ -145,7 +145,7 @@ Remove unused imports. Consider using a linter (flake8, ruff) to catch these aut
 
 > A Polygon problem has 0 sample test cases but 15 regular test cases. What happens when you migrate this problem?
 
-[Your answer here]
+The problem can be migrated to the database even when it has zero sample test cases. Sample test cases are handled separately during problem migration. The regular test cases are migrated using the "Migrate Test Cases to DB" button. The final result depends on how the migration code handles regular test cases when no sample cases are available.
 
 ---
 
@@ -153,7 +153,7 @@ Remove unused imports. Consider using a linter (flake8, ruff) to catch these aut
 
 > A problem is migrated with 20 test cases. Later, the problem setter removes 8 test cases on Polygon (now 12 remain). The problem is re-migrated. What happens?
 
-[Your answer here]
+During re-migration, the existing test cases are loaded and updated based on their order. The 12 test cases from Polygon update the first 12 existing database records. If the migration code does not delete the remaining records, the other 8 outdated test cases remain in the database. This can cause a mismatch between Polygon and the database.
 
 ---
 
@@ -161,7 +161,7 @@ Remove unused imports. Consider using a linter (flake8, ruff) to catch these aut
 
 > Two different Polygon problems have the exact same title: "Two Sum". You migrate the first one successfully. Then you try to migrate the second one. What happens?
 
-[Your answer here]
+The migration searches for an existing problem using its Polygon ID (`polygon_id`), not its title. Since the two problems have different Polygon IDs, the second problem should be created as a separate database record. Both problems can have the same title without overwriting each other.
 
 ---
 
@@ -169,8 +169,7 @@ Remove unused imports. Consider using a linter (flake8, ruff) to catch these aut
 
 > When test cases are saved to the database via "Migrate Test Cases to DB", some data is intentionally discarded. What data is lost? Why might this cause problems?
 
-[Your answer here]
-
+During migration, the code saves selected test-case fields such as input, output, sample status, and description. Other original Polygon test-case information may not be stored in the database. Losing this information can make it difficult to reproduce the original test-case configuration or debug problems later.
 ---
 
 ## Severity Guidelines
@@ -189,3 +188,9 @@ Use these definitions when assigning severity:
 ## Notes
 
 [Add any additional observations, patterns you noticed, or architectural concerns that don't fit into specific issues above]
+- The migration process uses Polygon as the source for problem details and test cases.
+- Redis is used to cache test cases before migration.
+- Test cases are stored in the database and can also be uploaded to Google Drive.
+- Re-migration may cause data consistency issues if outdated database records or cloud files are not removed.
+- The database and cloud storage screenshots show different test-case counts, but it is not confirmed whether they belong to the same migration run.
+- Some edge-case behaviors are based on code-flow understanding and have not been independently tested.
