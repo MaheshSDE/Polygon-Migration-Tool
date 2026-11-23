@@ -9,7 +9,7 @@
 | Type | Critical | High | Medium | Low | Total |
 |------|----------|------|--------|-----|-------|
 | Product Issues | 0 | 0 | 0 | 0 | 0 |
-| Code Issues | 0 | 0 | 0 | 0 | 0 |
+| Code Issues | 0 | 1 | 2 | 0 | 3 |
 
 ---
 
@@ -78,60 +78,69 @@ update the env file with respected storage cloud
 
 > Code issues are technical problems: bugs, security vulnerabilities, performance problems, code quality concerns, architectural issues.
 
-### [C1] Example: Unused Imports
+### [C1] Stored Cross-Site Scripting Through Problem Tags
 
-**Severity**: Low
+**Severity**: High
 
-**Location**: `problems/views.py:6-8`
+**Location**: `PolygonMigration/problems/templates/problems/index.html:572-576`
 
 **Description**:
-```python
-from bs4 import BeautifulSoup  # Never used
-from django.core.cache import cache  # Never used
-```
-These imports are declared but never used in the file.
+The selected tag name is inserted into the page using innerHTML and is also concatenated into an inline onclick handler:
+tagElement.innerHTML = tagName +
+    '<span class="remove-tag" onclick="removeTag(\'' + tagName + '\')">&times;</span>';
+
+Tag names can be entered by staff users and are saved in the database. A malicious tag name containing HTML or JavaScript can therefore execute when another staff user selects that tag and the selected-tags display is rendered.
 
 **Impact**:
-- Slightly increases memory usage
-- Makes code harder to understand (suggests these modules are used when they're not)
-- May cause confusion during code review
+- A malicious or compromised staff user could store a script payload in a tag.
+- Other staff users who select that tag could execute the script in their authenticated browser session.
+- The script could perform actions as the affected user or access page data available to that session.
 
 **Suggested Fix**:
-Remove unused imports. Consider using a linter (flake8, ruff) to catch these automatically.
-
+Avoid building HTML from tag values. Create the tag label with document.createTextNode() or assign textContent, create the remove control with document.createElement(), and attach its handler with addEventListener() rather than an inline handler. Validate tag names on the server as well.
 ---
 
-### [C2] Your Issue Title Here
+### [C2] Test Case Input and Output Are Truncated During Database Migration
 
-**Severity**: Critical / High / Medium / Low
+**Severity**:  Medium
 
-**Location**: `filename.py:line_number`
+**Location**: `PolygonMigration/problems/views.py:537-542`
 
 **Description**:
-[What is the issue?]
+Before saving test cases, the migration slices both input and output to 260 characters:
+
+truncated_input = input_data[:260]
+truncated_output = output_data[:260]
+
+The truncated values are then written to the database at lines 547-562. Test cases longer than 260 characters are therefore stored incompletely. The code comment calls this a byte limit, but Python string slicing here limits characters, not encoded bytes.
 
 **Impact**:
-[What goes wrong? What's the risk?]
-
+- Large test inputs and expected outputs are permanently lost in the database copy.
+- Stored test cases may no longer represent the original Polygon test cases.
+- Developers may be unable to reproduce failures accurately using the migrated data.
+- 
 **Suggested Fix**:
-[How would you fix it?]
-
+Store the complete input and output in the TextField columns unless there is a documented business requirement to limit their size. If a limit is required, validate it explicitly and report a clear error rather than silently truncating the data. Add tests covering inputs and outputs longer than 260 characters.
 ---
 
-### [C3] Your Issue Title Here
+### [C3] Missing Timeout Handling in Polygon API Requests
 
-**Severity**: Critical / High / Medium / Low
+**Severity**:  Medium
 
-**Location**: `filename.py:line_number`
+**Location**: `PolygonMigration/problems/polygon_api.py:92–94`
 
 **Description**:
-[What is the issue?]
+The application sends HTTP requests to the Polygon API without specifying a timeout.
+If the Polygon API becomes slow or stops responding, the request may remain blocked for an extended period because no explicit timeout is configured.
 
 **Impact**:
-[What goes wrong? What's the risk?]
-
+- Problem fetching and migration operations may take excessively long.
+- Django workers may remain occupied by hanging requests.
+- Multiple slow requests can affect application responsiveness.
+  
 **Suggested Fix**:
-[How would you fix it?]
+Configure connection and read timeouts for external API requests.
+Handle requests.exceptions.Timeout separately and display a meaningful error message to the user.
 
 ---
 
